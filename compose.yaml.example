@@ -1,0 +1,35 @@
+services:
+  app:
+    image: ghcr.io/mserajnik/lostcityrs:245.2
+    # If you are using a Linux host and your user's UID and GID are not 1000,
+    # change these values to reflect your user's UID and GID. This will cause
+    # the user in the container to use the same UID and GID and prevent
+    # permission issues on the bind mount for the SQLite database file.
+    # If you are on Windows or macOS, you can ignore this.
+    user: 1000:1000
+    restart: unless-stopped
+    ports:
+      - 8888:8888
+    volumes:
+      # These bind mounts are necessary to persist the database and player data
+      # on the host machine between container restarts.
+      - ./storage/database:/opt/lostcityrs/database
+      - ./storage/data/players:/opt/lostcityrs/engine/data/players
+    environment:
+      - TZ=Etc/UTC # Change this to your desired timezone (usually you want to match your host system's timezone)
+      # This Docker setup is limited to the following scope:
+      # - A single world
+      # - SQLite as the database backend
+      # - Usage of the web client (it is not intended to expose ports other
+      #   than the web client port)
+      # - Accounts can be directly created through the web client (this means
+      #   that to disable public access, the web client has to be
+      #   access-protected by other means, e.g., a reverse proxy with HTTP
+      #   basic authentication)
+      #
+      # Other configurations are probably possible, but not tested and
+      # unsupported. As such, only the following variables are meaningful to
+      # adjust for this setup:
+      - WEB_PORT=8888 # The port the web client will be served on; has to match the port mapping above
+      - NODE_MEMBERS=true # Whether to enable members features or not
+      - NODE_XPRATE=1 # The experience rate multiplier
