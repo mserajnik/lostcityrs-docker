@@ -67,6 +67,7 @@ RUN \
   apt install -y \
     curl \
     git \
+    netcat-openbsd \
     openjdk-17-jdk && \
   mkdir -p /opt/lostcityrs && \
   git clone "${LOST_CITY_RS_ENGINE_REPOSITORY}" --single-branch --depth=1 -b ${LOST_CITY_RS_VERSION} /opt/lostcityrs/engine && \

@@ -8,6 +8,12 @@ services:
     # If you are on Windows or macOS, you can ignore this.
     user: 1000:1000
     restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'nc', '-z', 'localhost', '8888']
+      interval: 1m
+      timeout: 3s
+      retries: 5
+      start_period: 5m # This is set relatively high to take migrations and cache packing into account; adjust as required
     ports:
       - 8888:8888
     volumes:
