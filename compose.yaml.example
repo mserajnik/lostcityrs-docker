@@ -9,13 +9,13 @@ services:
     user: 1000:1000
     restart: unless-stopped
     healthcheck:
-      test: ['CMD', 'nc', '-z', 'localhost', '8888']
+      test: ['CMD', 'nc', '-z', 'localhost', '8888'] # The port must match the `WEB_PORT` environment variable further below
       interval: 1m
       timeout: 3s
       retries: 5
       start_period: 5m # This is set relatively high to take migrations and cache packing into account; adjust as required
     ports:
-      - 8888:8888
+      - 8888:8888 # The container port must match the `WEB_PORT` environment variable further below
     volumes:
       # These bind mounts are necessary to persist the database and player data
       # on the host machine between container restarts.
@@ -36,6 +36,6 @@ services:
       # Other configurations are probably possible, but not tested and
       # unsupported. As such, only the following variables are meaningful to
       # adjust for this setup:
-      - WEB_PORT=8888 # The port the web client will be served on; has to match the port mapping above
+      - WEB_PORT=8888 # The port the web client will be served on; must match the port mapping further above
       - NODE_MEMBERS=true # Whether to enable members features or not
       - NODE_XPRATE=1 # The experience rate multiplier
