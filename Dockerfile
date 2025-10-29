@@ -87,13 +87,17 @@ RUN \
 
 USER bun
 
+# Lost City RS uses fixed paths for the SQLite database files in the `engine`
+# directory. We create a `database` directory and symlink the files from there,
+# allowing the database to be persisted via a bind mount or volume.
+# WAL mode is currently not used by default, but we create the required
+# symlinks anyway for future-proofing.
 RUN \
   mkdir /opt/lostcityrs/database && \
-  touch /opt/lostcityrs/database/db.sqlite && \
-  touch /opt/lostcityrs/database/db.sqlite-journal && \
+  for suffix in "" "-journal" "-shm" "-wal"; do \
+    ln -sn "/opt/lostcityrs/database/db.sqlite${suffix}" "/opt/lostcityrs/engine/db.sqlite${suffix}"; \
+  done && \
   cd /opt/lostcityrs/engine && \
-  ln -s /opt/lostcityrs/database/db.sqlite ./db.sqlite && \
-  ln -s /opt/lostcityrs/database/db.sqlite-journal ./db.sqlite-journal && \
   bun install
 
 CMD ["start"]
