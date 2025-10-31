@@ -17,6 +17,11 @@ on:
       - Dockerfile
       - docker-cmd-start.sh
   workflow_dispatch:
+    inputs:
+      force-rebuild:
+        type: boolean
+        description: Force rebuild (even if images for the latest commit hashes already exist)
+        default: false
 
 env:
   REGISTRY: ghcr.io
@@ -44,16 +49,97 @@ jobs:
       packages: write
 
     steps:
+      - name: Get latest engine commit hash for version
+        uses: actions/github-script@v8
+        id: latest-engine-commit-hash
+        env:
+          VERSION: ${{ matrix.version }}
+        with:
+          result-encoding: string
+          retries: 3
+          script: |
+            const ref = await github.rest.git.getRef({
+              owner: 'LostCityRS',
+              repo: 'Engine-TS',
+              ref: `heads/${process.env.VERSION}`,
+            })
+
+            return ref.data.object.sha.substring(0, 7)
+
+      - name: Get latest content commit hash for version
+        uses: actions/github-script@v8
+        id: latest-content-commit-hash
+        env:
+          VERSION: ${{ matrix.version }}
+        with:
+          result-encoding: string
+          retries: 3
+          script: |
+            const ref = await github.rest.git.getRef({
+              owner: 'LostCityRS',
+              repo: 'Content',
+              ref: `heads/${process.env.VERSION}`,
+            })
+
+            return ref.data.object.sha.substring(0, 7)
+
+      - name: Generate combined commit hashes tag
+        uses: actions/github-script@v8
+        id: combined-commit-hashes-tag
+        env:
+          ENGINE_COMMIT_HASH: ${{ steps.latest-engine-commit-hash.outputs.result }}
+          CONTENT_COMMIT_HASH: ${{ steps.latest-content-commit-hash.outputs.result }}
+          VERSION: ${{ matrix.version }}
+        with:
+          result-encoding: string
+          script: |
+            return `${process.env.VERSION}-engine.${process.env.ENGINE_COMMIT_HASH}-content.${process.env.CONTENT_COMMIT_HASH}`
+
+      # We check if the workflow was triggered by a schedule and if today is
+      # Monday, in which case we want to trigger a (re)build in any case (to
+      # keep the Docker images up-to-date).
+      #
+      # We also check if the "force rebuild" input is checked when the workflow
+      # is triggered manually; if yes, we also want to (re)build.
+      - name: Determine if images for commit hashes already exist
+        id: images-already-exist
+        run: |
+          if [[ "${{ github.event_name }}" == "schedule" ]]; then
+            if [[ "$(date +%u)" -eq 1 ]]; then
+              echo "result=false" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+          fi
+
+          if [[ "${{ inputs.force-rebuild }}" == "true" ]]; then
+            echo "result=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          ghcr_token=$(echo ${{ secrets.GITHUB_TOKEN }} | base64)
+          tags=$(skopeo list-tags --registry-token ${ghcr_token} docker://${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} | jq '.Tags[]')
+
+          if grep -q "${{ steps.combined-commit-hashes-tag.outputs.result }}" <<< "${tags}"; then
+            echo "result=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          echo "result=false" >> $GITHUB_OUTPUT
+
       - name: Checkout repository
+        if: ${{ steps.images-already-exist.outputs.result != 'true' }}
         uses: actions/checkout@v5
 
       - name: Set up QEMU
+        if: ${{ steps.images-already-exist.outputs.result != 'true' }}
         uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
+        if: ${{ steps.images-already-exist.outputs.result != 'true' }}
         uses: docker/setup-buildx-action@v3
 
       - name: Log in to container registry
+        if: ${{ steps.images-already-exist.outputs.result != 'true' }}
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
@@ -61,15 +147,18 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Generate timestamp
+        if: ${{ steps.images-already-exist.outputs.result != 'true' }}
         id: generate-timestamp
         run: echo "timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_OUTPUT
 
       # We tag the newest build for version 245.2 with `latest` since that can
       # be considered the default right now.
       - name: Generate tags
+        if: ${{ steps.images-already-exist.outputs.result != 'true' }}
         uses: actions/github-script@v8
         id: generate-tags
         env:
+          COMMIT_HASHES_TAG: ${{ steps.combined-commit-hashes-tag.outputs.result }}
           IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           VERSION: ${{ matrix.version }}
         with:
@@ -82,14 +171,18 @@ jobs:
             }
 
             tags.push(`${process.env.IMAGE}:${process.env.VERSION}`)
+            tags.push(`${process.env.IMAGE}:${process.env.COMMIT_HASHES_TAG}`)
 
             return tags.join(',')
 
       # See https://github.com/opencontainers/image-spec/blob/main/annotations.md
       - name: Generate OCI annotations
+        if: ${{ steps.images-already-exist.outputs.result != 'true' }}
         uses: actions/github-script@v8
         id: generate-annotations
         env:
+          ENGINE_COMMIT_HASH: ${{ steps.latest-engine-commit-hash.outputs.result }}
+          COMMIT_HASHES_TAG: ${{ steps.combined-commit-hashes-tag.outputs.result }}
           IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           VERSION: ${{ matrix.version }}
           TIMESTAMP: ${{ steps.generate-timestamp.outputs.timestamp }}
@@ -103,9 +196,10 @@ jobs:
               { key: 'documentation', envKey: 'OCI_ANNOTATION_DOCUMENTATION' },
               { key: 'source', envKey: 'OCI_ANNOTATION_SOURCE' },
               { key: 'version', envKey: 'VERSION' },
+              { key: 'revision', envKey: 'ENGINE_COMMIT_HASH' },
               { key: 'vendor', envKey: 'OCI_ANNOTATION_VENDOR' },
               { key: 'licenses', envKey: 'OCI_ANNOTATION_LICENSES' },
-              { key: 'ref.name', value: `${process.env.IMAGE}:${process.env.VERSION}` },
+              { key: 'ref.name', value: `${process.env.IMAGE}:${process.env.COMMIT_HASHES_TAG}` },
               { key: 'title', envKey: 'OCI_ANNOTATION_TITLE' },
               { key: 'description', envKey: 'OCI_ANNOTATION_DESCRIPTION' },
               { key: 'base.name', envKey: 'OCI_ANNOTATION_BASE_NAME' },
@@ -127,9 +221,12 @@ jobs:
       # instead (which then results in data from the base images being shown if
       # we do not provide values for the respective labels ourselves).
       - name: Generate OCI labels
+        if: ${{ steps.images-already-exist.outputs.result != 'true' }}
         uses: actions/github-script@v8
         id: generate-labels
         env:
+          ENGINE_COMMIT_HASH: ${{ steps.latest-engine-commit-hash.outputs.result }}
+          COMMIT_HASHES_TAG: ${{ steps.combined-commit-hashes-tag.outputs.result }}
           IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           VERSION: ${{ matrix.version }}
           TIMESTAMP: ${{ steps.generate-timestamp.outputs.timestamp }}
@@ -143,9 +240,10 @@ jobs:
               { key: 'documentation', envKey: 'OCI_ANNOTATION_DOCUMENTATION' },
               { key: 'source', envKey: 'OCI_ANNOTATION_SOURCE' },
               { key: 'version', envKey: 'VERSION' },
+              { key: 'revision', envKey: 'ENGINE_COMMIT_HASH' },
               { key: 'vendor', envKey: 'OCI_ANNOTATION_VENDOR' },
               { key: 'licenses', envKey: 'OCI_ANNOTATION_LICENSES' },
-              { key: 'ref.name', value: `${process.env.IMAGE}:${process.env.VERSION}` },
+              { key: 'ref.name', value: `${process.env.IMAGE}:${process.env.COMMIT_HASHES_TAG}` },
               { key: 'title', envKey: 'OCI_ANNOTATION_TITLE' },
               { key: 'description', envKey: 'OCI_ANNOTATION_DESCRIPTION' },
               { key: 'base.name', envKey: 'OCI_ANNOTATION_BASE_NAME' },
@@ -158,6 +256,7 @@ jobs:
             return labels
 
       - name: Build and push images
+        if: ${{ steps.images-already-exist.outputs.result != 'true' }}
         uses: docker/build-push-action@v6
         with:
           context: .

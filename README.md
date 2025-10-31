@@ -35,9 +35,10 @@ The setup features:
   keep your database up-to-date at all times
 
 > [!NOTE]
-> The Docker images are (re-)built on a daily schedule to ensure software and
-> dependencies are up-to-date, even if there have been no updates to Lost City
-> RS itself.
+> The Docker images are built on a daily schedule, unless there have been no
+> new commits to Lost City RS since the last build. Additionally, every Monday,
+> the latest images are rebuilt to ensure software and dependencies are
+> up-to-date, even if there have been no updates to Lost City RS itself.
 
 ## Table of contents
 
