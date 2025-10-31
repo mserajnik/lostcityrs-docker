@@ -25,8 +25,8 @@ ARG LOST_CITY_RS_GROUP_NAME=lostcityrs
 
 FROM oven/bun:debian
 
-ARG DEBIAN_FRONTEND
 ARG TARGETARCH
+ARG DEBIAN_FRONTEND
 ARG LOST_CITY_RS_VERSION
 ARG LOST_CITY_RS_ENGINE_REPOSITORY
 ARG LOST_CITY_RS_CONTENT_REPOSITORY
@@ -64,11 +64,8 @@ ENV LOGGER_SERVER=true
 ENV LOGGER_HOST=localhost
 ENV LOGGER_PORT=43501
 ENV EASY_STARTUP=true
-
 # Husky is not needed here since it is only used for pre-commit hooks
 ENV HUSKY=0
-
-COPY --chmod=755 ./docker-cmd-start.sh /usr/local/bin/start
 
 RUN \
   apt update -y && \
@@ -108,10 +105,13 @@ RUN \
   chmod 4755 /usr/local/bin/fixuid && \
   mkdir -p /etc/fixuid && \
   printf "user: ${LOST_CITY_RS_USER_NAME}\ngroup: ${LOST_CITY_RS_GROUP_NAME}\n" > /etc/fixuid/config.yml && \
-  apt remove -y curl && \
+  apt remove -y \
+    curl && \
   apt autoremove -y && \
   apt clean -y && \
   rm -rf /var/lib/apt/lists/*
+
+COPY --chmod=755 ./docker-cmd-start.sh /usr/local/bin/start
 
 USER ${LOST_CITY_RS_USER_NAME}:${LOST_CITY_RS_GROUP_NAME}
 
