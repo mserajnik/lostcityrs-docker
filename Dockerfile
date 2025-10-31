@@ -72,7 +72,7 @@ COPY --chmod=755 ./docker-cmd-start.sh /usr/local/bin/start
 
 RUN \
   apt update -y && \
-  apt install -y \
+  apt install -y --no-install-recommends \
     curl \
     git \
     netcat-openbsd \
