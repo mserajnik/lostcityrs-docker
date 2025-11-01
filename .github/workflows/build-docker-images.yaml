@@ -64,7 +64,7 @@ jobs:
               ref: `heads/${process.env.VERSION}`,
             })
 
-            return ref.data.object.sha.substring(0, 7)
+            return ref.data.object.sha
 
       - name: Get latest content commit hash for version
         uses: actions/github-script@v8
@@ -81,7 +81,7 @@ jobs:
               ref: `heads/${process.env.VERSION}`,
             })
 
-            return ref.data.object.sha.substring(0, 7)
+            return ref.data.object.sha
 
       - name: Generate combined commit hashes tag
         uses: actions/github-script@v8
@@ -93,7 +93,7 @@ jobs:
         with:
           result-encoding: string
           script: |
-            return `${process.env.VERSION}-engine.${process.env.ENGINE_COMMIT_HASH}-content.${process.env.CONTENT_COMMIT_HASH}`
+            return `${process.env.VERSION}-engine.${process.env.ENGINE_COMMIT_HASH.substring(0, 7)}-content.${process.env.CONTENT_COMMIT_HASH.substring(0, 7)}`
 
       # We check if the workflow was triggered by a schedule and if today is
       # Monday, in which case we want to trigger a (re)build in any case (to
