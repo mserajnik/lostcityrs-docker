@@ -4,25 +4,8 @@
 
 > A Docker setup for Lost City RS
 
-> [!WARNING]
-> This project should currently be considered experimental and has not yet been
-> thoroughly tested and optimized for production use. Use at your own risk.
-
 This is a simple, Docker-based solution for running [Lost City RS][lostcityrs].
-It was created for personal use and its scope is limited to the following
-setup:
-
-+ A single world
-+ SQLite as the database backend
-+ Usage of the web client (it is not intended to expose ports other than the
-  web client port)
-+ Accounts can be directly created through the web client (this means that to
-  disable public access, the web client has to be access-protected by other
-  means, e.g., a reverse proxy with HTTP basic authentication)
-
-Other configurations are probably possible, but not tested and unsupported.
-
-The setup features:
+It offers:
 
 + __Prebuilt Docker images for both `x86_64` and `aarch64`, leveraging GitHub__
   __Actions:__ simply pull the provided image for your architecture and get
@@ -33,6 +16,19 @@ The setup features:
 + __Seamless, automated database migrations:__ when pulling the latest Docker
   image and re-creating the container, migrations are applied automatically to
   keep your database up-to-date at all times
+
+The setup was created for personal use and its scope is limited to the
+following:
+
++ A single world
++ SQLite as the database backend
++ Usage of the web client (it is not intended to expose ports other than the
+  web client port)
++ Accounts can be directly created through the web client (this means that to
+  disable public access, the web client has to be access-protected by other
+  means, e.g., a reverse proxy with HTTP basic authentication)
+
+Other configurations are probably possible, but not tested and unsupported.
 
 > [!NOTE]
 > The Docker images are built on a daily schedule, unless there have been no
