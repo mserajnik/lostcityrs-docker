@@ -11,8 +11,8 @@ It offers:
   __Actions:__ simply pull the provided image for your architecture and get
   started
 + __The ability to run Lost City RS configured for any of its supported__
-  __versions:__ prebuilt images for all current versions ranging from `225` to
-  `245.2` are provided
+  __versions:__ prebuilt images for all fully playable versions ranging from
+  `225` to `245.2` are provided
 + __Seamless, automated database migrations:__ when pulling the latest Docker
   image and re-creating the container, migrations are applied automatically to
   keep your database up-to-date at all times
@@ -69,13 +69,17 @@ cp ./compose.yaml.example ./compose.yaml
 
 Next, adjust your `compose.yaml`. The first thing to decide on is which Docker
 image you want to use based on the version of Lost City RS you want to run.
-You can choose from the following versions:
+You can currently choose from the following versions:
 
-| Supported version | Image                      |
-| --------| -------------------------------------|
-| `245.2` | `ghcr.io/mserajnik/lostcityrs:245.2` |
-| `244`   | `ghcr.io/mserajnik/lostcityrs:244`   |
-| `225`   | `ghcr.io/mserajnik/lostcityrs:225`   |
+| Supported version | Image                                |
+| ----------------- | ------------------------------------ |
+| `245.2`           | `ghcr.io/mserajnik/lostcityrs:245.2` |
+| `244`             | `ghcr.io/mserajnik/lostcityrs:244`   |
+| `225`             | `ghcr.io/mserajnik/lostcityrs:225`   |
+
+> [!NOTE]
+> As new Lost City RS versions become fully playable, further images will be
+> added accordingly.
 
 Aside from this, take a look at the `environment` section of the `app` service
 and make any adjustments necessary for your desired setup.
