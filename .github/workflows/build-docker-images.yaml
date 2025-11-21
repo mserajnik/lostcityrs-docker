@@ -128,7 +128,7 @@ jobs:
 
       - name: Checkout repository
         if: ${{ steps.images-already-exist.outputs.result != 'true' }}
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Set up QEMU
         if: ${{ steps.images-already-exist.outputs.result != 'true' }}
