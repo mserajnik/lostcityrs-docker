@@ -73,7 +73,7 @@ RUN \
     curl \
     git \
     netcat-openbsd \
-    openjdk-17-jdk && \
+    openjdk-21-jdk && \
   # The Debian-based Bun Docker image has a user called `bun` with UID 1000 and
   # GID 1000 by default. Since we allow configuration of the name, UID and GID
   # of the user and group that should be used in the container, we need to
