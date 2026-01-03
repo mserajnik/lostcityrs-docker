@@ -43,7 +43,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        version: [245.2, 244, 225]
+        version: [254, 245.2, 244, 225]
     permissions:
       contents: read
       packages: write
@@ -151,8 +151,8 @@ jobs:
         id: generate-timestamp
         run: echo "timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_OUTPUT
 
-      # We tag the newest build for version 245.2 with `latest` since that can
-      # be considered the default right now.
+      # We tag the newest build for version 254 with `latest` since that can be
+      # considered the default right now.
       - name: Generate tags
         if: ${{ steps.images-already-exist.outputs.result != 'true' }}
         uses: actions/github-script@v8
@@ -166,7 +166,7 @@ jobs:
           script: |
             const tags = []
 
-            if (process.env.VERSION === '245.2') {
+            if (process.env.VERSION === '254') {
               tags.push(`${process.env.IMAGE}:latest`)
             }
 
@@ -291,12 +291,12 @@ jobs:
           # npm packages, but let's be safe and make sure we don't keep more
           # than 1,000.
           #
-          # We have 3 different versions per build. For each version, we have
-          # the image index plus two image manifests, making a total of 9
+          # We have 4 different versions per build. For each version, we have
+          # the image index plus two image manifests, making a total of 12
           # packages.
           #
           # This means, to stay below the assumed limit of 1,000 packages, we
-          # can keep a maximum of 111 builds worth of server images; let's make
-          # that 100 to have a nice and round number:
-          # 9 * 100 = 900 packages
-          min-versions-to-keep: 900
+          # can keep a maximum of 83 builds worth of server images; let's make
+          # that 80 to have a nice and round number:
+          # 12 * 80 = 960 packages
+          min-versions-to-keep: 960

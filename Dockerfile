@@ -15,7 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ARG DEBIAN_FRONTEND=noninteractive
-ARG LOST_CITY_RS_VERSION=245.2
+ARG LOST_CITY_RS_VERSION=254
 ARG LOST_CITY_RS_ENGINE_REPOSITORY=https://github.com/LostCityRS/Engine-TS.git
 ARG LOST_CITY_RS_CONTENT_REPOSITORY=https://github.com/LostCityRS/Content.git
 ARG LOST_CITY_RS_USER_ID=1000

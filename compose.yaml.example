@@ -1,6 +1,6 @@
 services:
   app:
-    image: ghcr.io/mserajnik/lostcityrs:245.2
+    image: ghcr.io/mserajnik/lostcityrs:254
     # If you are using a Linux host and your user's UID and GID are not 1000,
     # change these values to reflect your user's UID and GID. This will cause
     # the user in the container to use the same UID and GID and prevent

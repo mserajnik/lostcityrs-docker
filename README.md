@@ -12,7 +12,7 @@ It offers:
   started
 + __The ability to run Lost City RS configured for any of its supported__
   __versions:__ prebuilt images for all fully playable versions ranging from
-  `225` to `245.2` are provided
+  `225` to `254` are provided
 + __Seamless, automated database migrations:__ when pulling the latest Docker
   image and re-creating the container, migrations are applied automatically to
   keep your database up-to-date at all times
@@ -73,6 +73,7 @@ You can currently choose from the following versions:
 
 | Supported version | Image                                |
 | ----------------- | ------------------------------------ |
+| `254`             | `ghcr.io/mserajnik/lostcityrs:254`   |
 | `245.2`           | `ghcr.io/mserajnik/lostcityrs:245.2` |
 | `244`             | `ghcr.io/mserajnik/lostcityrs:244`   |
 | `225`             | `ghcr.io/mserajnik/lostcityrs:225`   |
