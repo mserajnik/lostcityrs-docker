@@ -113,7 +113,7 @@ RUN \
 
 COPY --chmod=755 ./docker-cmd-start.sh /usr/local/bin/start
 
-USER ${LOST_CITY_RS_USER_NAME}:${LOST_CITY_RS_GROUP_NAME}
+USER ${LOST_CITY_RS_USER_NAME}
 
 # Lost City RS uses fixed paths for the SQLite database files in the `engine`
 # directory. We create a `database` directory and symlink the files from there,
