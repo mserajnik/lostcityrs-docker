@@ -1,0 +1,4 @@
+*
+!.dockerignore
+!Dockerfile
+!docker-cmd-start.sh

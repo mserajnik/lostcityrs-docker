@@ -37,16 +37,16 @@ ARG LOST_CITY_RS_GROUP_NAME
 
 # The Docker setup that this Dockerfile is part of is limited to the following
 # scope:
-# - A single world
-# - SQLite as the database backend
+# - A single world.
+# - SQLite as the database backend.
 # - Usage of the web client (it is not intended to expose ports other than the
-#   web client port)
+#   web client port).
 # - Accounts can be directly created through the web client (this means that to
 #   disable public access, the web client has to be access-protected by other
-#   means, e.g., a reverse proxy with HTTP basic authentication)
+#   means, e.g., a reverse proxy with HTTP basic authentication).
 #
 # Other configurations are probably possible, but not tested and unsupported.
-# As such, we ony set a limited set of environment variables here to ensure
+# As such, we only set a limited set of environment variables here to ensure
 # that the setup works out of the box (and rely on the defaults for everything
 # else).
 ENV WEB_PORT=8888
@@ -64,11 +64,11 @@ ENV LOGGER_SERVER=true
 ENV LOGGER_HOST=localhost
 ENV LOGGER_PORT=43501
 ENV EASY_STARTUP=true
-# Husky is not needed here since it is only used for pre-commit hooks
+# Husky is not needed here since it is only used for pre-commit hooks.
 ENV HUSKY=0
 
 RUN \
-  apt update -y && \
+  apt update && \
   apt install -y --no-install-recommends \
     curl \
     git \
@@ -80,31 +80,31 @@ RUN \
   # either rename the existing user and group or create a new user and group
   # with the specified name, UID and GID.
   cd /tmp && \
-  existing_group=$(getent group "${LOST_CITY_RS_GROUP_ID}") || true && \
-  existing_user=$(getent passwd "${LOST_CITY_RS_USER_ID}") || true && \
-  if [ -n "${existing_group}" ]; then \
-    old_groupname=$(echo "${existing_group}" | cut -d: -f1) && \
-    groupmod -n "${LOST_CITY_RS_GROUP_NAME}" "${old_groupname}"; \
+  existing_group=$(getent group "$LOST_CITY_RS_GROUP_ID") || true && \
+  existing_user=$(getent passwd "$LOST_CITY_RS_USER_ID") || true && \
+  if [ -n "$existing_group" ]; then \
+    old_groupname=$(echo "$existing_group" | cut -d':' -f1) && \
+    groupmod -n "$LOST_CITY_RS_GROUP_NAME" "$old_groupname"; \
   else \
-    groupadd -g "${LOST_CITY_RS_GROUP_ID}" "${LOST_CITY_RS_GROUP_NAME}"; \
+    groupadd -g "$LOST_CITY_RS_GROUP_ID" "$LOST_CITY_RS_GROUP_NAME"; \
   fi && \
-  if [ -n "${existing_user}" ]; then \
-    old_username=$(echo "${existing_user}" | cut -d: -f1) && \
-    usermod -l "${LOST_CITY_RS_USER_NAME}" -d "/home/${LOST_CITY_RS_USER_NAME}" "${old_username}" && \
-    mv "/home/${old_username}" "/home/${LOST_CITY_RS_USER_NAME}"; \
+  if [ -n "$existing_user" ]; then \
+    old_username=$(echo "$existing_user" | cut -d':' -f1) && \
+    usermod -l "$LOST_CITY_RS_USER_NAME" -d "/home/$LOST_CITY_RS_USER_NAME" "$old_username" && \
+    mv "/home/$old_username" "/home/$LOST_CITY_RS_USER_NAME"; \
   else \
-    useradd -u "${LOST_CITY_RS_USER_ID}" -g "${LOST_CITY_RS_GROUP_NAME}" -d "/home/${LOST_CITY_RS_USER_NAME}" -s /bin/sh -m "${LOST_CITY_RS_USER_NAME}"; \
+    useradd -u "$LOST_CITY_RS_USER_ID" -g "$LOST_CITY_RS_GROUP_NAME" -d "/home/$LOST_CITY_RS_USER_NAME" -s /bin/sh -m "$LOST_CITY_RS_USER_NAME"; \
   fi && \
   mkdir -p /opt/lostcityrs && \
-  git clone "${LOST_CITY_RS_ENGINE_REPOSITORY}" --single-branch --depth=1 -b ${LOST_CITY_RS_VERSION} /opt/lostcityrs/engine && \
-  git clone "${LOST_CITY_RS_CONTENT_REPOSITORY}" --single-branch --depth=1 -b ${LOST_CITY_RS_VERSION} /opt/lostcityrs/content && \
-  chown -R ${LOST_CITY_RS_USER_NAME}:${LOST_CITY_RS_GROUP_NAME} /opt/lostcityrs && \
+  git clone "$LOST_CITY_RS_ENGINE_REPOSITORY" --single-branch --depth=1 -b "$LOST_CITY_RS_VERSION" /opt/lostcityrs/engine && \
+  git clone "$LOST_CITY_RS_CONTENT_REPOSITORY" --single-branch --depth=1 -b "$LOST_CITY_RS_VERSION" /opt/lostcityrs/content && \
+  chown -R $LOST_CITY_RS_USER_NAME:$LOST_CITY_RS_GROUP_NAME /opt/lostcityrs && \
   # See https://github.com/boxboat/fixuid
-  curl -SsL https://github.com/boxboat/fixuid/releases/download/v0.6.0/fixuid-0.6.0-linux-${TARGETARCH}.tar.gz | tar -C /usr/local/bin -xzf - && \
+  curl -SsL https://github.com/boxboat/fixuid/releases/download/v0.6.0/fixuid-0.6.0-linux-$TARGETARCH.tar.gz | tar -C /usr/local/bin -xzf - && \
   chown root:root /usr/local/bin/fixuid && \
   chmod 4755 /usr/local/bin/fixuid && \
   mkdir -p /etc/fixuid && \
-  printf "user: ${LOST_CITY_RS_USER_NAME}\ngroup: ${LOST_CITY_RS_GROUP_NAME}\n" > /etc/fixuid/config.yml && \
+  printf 'user: %s\ngroup: %s\n' "$LOST_CITY_RS_USER_NAME" "$LOST_CITY_RS_GROUP_NAME" > /etc/fixuid/config.yml && \
   apt remove -y \
     curl && \
   apt autoremove -y && \
@@ -113,7 +113,7 @@ RUN \
 
 COPY --chmod=755 ./docker-cmd-start.sh /usr/local/bin/start
 
-USER ${LOST_CITY_RS_USER_NAME}
+USER $LOST_CITY_RS_USER_NAME
 
 # Lost City RS uses fixed paths for the SQLite database files in the `engine`
 # directory. We create a `database` directory and symlink the files from there,
@@ -123,10 +123,10 @@ USER ${LOST_CITY_RS_USER_NAME}
 RUN \
   mkdir /opt/lostcityrs/database && \
   for suffix in "" "-journal" "-shm" "-wal"; do \
-    ln -sn "/opt/lostcityrs/database/db.sqlite${suffix}" "/opt/lostcityrs/engine/db.sqlite${suffix}"; \
+    ln -sn "/opt/lostcityrs/database/db.sqlite$suffix" "/opt/lostcityrs/engine/db.sqlite$suffix"; \
   done && \
   cd /opt/lostcityrs/engine && \
   bun install
 
-WORKDIR "/home/${LOST_CITY_RS_USER_NAME}"
+WORKDIR "/home/$LOST_CITY_RS_USER_NAME"
 CMD ["start"]

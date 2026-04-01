@@ -9,33 +9,33 @@ services:
     user: 1000:1000
     restart: unless-stopped
     healthcheck:
-      test: ['CMD', 'nc', '-z', 'localhost', '8888'] # The port must match the `WEB_PORT` environment variable further below
+      test: ['CMD', 'nc', '-z', 'localhost', '8888'] # The port must match the `WEB_PORT` environment variable further below.
       interval: 1m
       timeout: 3s
       retries: 5
-      start_period: 5m # This is set relatively high to take migrations and cache packing into account; adjust as required
+      start_period: 5m # This is set relatively high to take migrations and cache packing into account; adjust as required.
     ports:
-      - 8888:8888 # The container port must match the `WEB_PORT` environment variable further below
+      - 8888:8888 # The container port must match the `WEB_PORT` environment variable further below.
     volumes:
       # These bind mounts are necessary to persist the database and player data
       # on the host machine between container restarts.
       - ./storage/database:/opt/lostcityrs/database
       - ./storage/data/players:/opt/lostcityrs/engine/data/players
     environment:
-      - TZ=Etc/UTC # Change this to your desired timezone (usually you want to match your host system's timezone)
+      - TZ=Etc/UTC # Change this to your desired timezone (usually you want to match your host system's timezone).
       # This Docker setup is limited to the following scope:
-      # - A single world
-      # - SQLite as the database backend
+      # - A single world.
+      # - SQLite as the database backend.
       # - Usage of the web client (it is not intended to expose ports other
-      #   than the web client port)
+      #   than the web client port).
       # - Accounts can be directly created through the web client (this means
       #   that to disable public access, the web client has to be
       #   access-protected by other means, e.g., a reverse proxy with HTTP
-      #   basic authentication)
+      #   basic authentication).
       #
       # Other configurations are probably possible, but not tested and
       # unsupported. As such, only the following variables are meaningful to
       # adjust for this setup:
-      - WEB_PORT=8888 # The port the web client will be served on; must match the port mapping further above
-      - NODE_MEMBERS=true # Whether to enable members features or not
-      - NODE_XPRATE=1 # The experience rate multiplier
+      - WEB_PORT=8888 # The port the web client will be served on; must match the port mapping further above.
+      - NODE_MEMBERS=true # Whether to enable members features or not.
+      - NODE_XPRATE=1 # The experience rate multiplier.
