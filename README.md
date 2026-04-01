@@ -115,6 +115,13 @@ docker compose down
 
 ### Updating
 
+> [!WARNING]
+> Switching to a different Lost City RS version by changing the Docker image
+> tag is currently not supported. Upstream database migrations differ between
+> supported versions and branches, so changing versions may leave your existing
+> setup in an unusable state. If you want to move to a different version, treat
+> it as a fresh installation and make backups of your persisted data first.
+
 To update, pull the latest image:
 
 ```sh
