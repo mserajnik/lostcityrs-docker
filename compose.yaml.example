@@ -22,7 +22,7 @@ services:
       - ./storage/database:/opt/lostcityrs/database
       - ./storage/data/players:/opt/lostcityrs/engine/data/players
     environment:
-      - TZ=Etc/UTC # Change this to your desired timezone (usually you want to match your host system's timezone).
+      - TZ=Etc/UTC # Change this to your desired time zone (usually you want to match your host system's time zone).
       # This Docker setup is limited to the following scope:
       # - A single world.
       # - SQLite as the database backend.
