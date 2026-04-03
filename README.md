@@ -40,6 +40,7 @@ Other configurations are probably possible, but not tested and unsupported.
 
 + [Install](#install)
   + [Dependencies](#dependencies)
+  + [Using a coding agent](#using-a-coding-agent)
   + [Instructions](#instructions)
 + [Usage](#usage)
   + [Starting](#starting)
@@ -55,6 +56,45 @@ Other configurations are probably possible, but not tested and unsupported.
 ### Dependencies
 
 + [Docker][docker] (including [Compose V2][docker-compose])
+
+### Using a coding agent
+
+If you have a coding agent like [Claude Code][claude-code] or [Codex][codex]
+installed, you can try a prompt similar to the following one to have it assist
+you with the installation process:
+
+```
+Help me install and set up https://github.com/mserajnik/lostcityrs-docker.
+First, clone the repository and read the README carefully.
+Then guide me through the installation process step by step, following the
+README closely.
+Do as much of the setup yourself as you safely can so that I only have to step
+in when a manual action or personal preference is required.
+Ask me about my preferences whenever a choice has to be made, explain the
+relevant options clearly, and tailor your instructions to the OS I am using.
+Assume that I am not familiar with Lost City RS or Docker and that I have not
+read the README myself.
+For steps that I need to perform manually, give me clear instructions and exact
+commands where appropriate.
+Do not assume user-facing choices such as the Lost City RS version or
+networking-related preferences. Ask me whenever the README presents a
+meaningful choice.
+For settings that the README or the Docker Compose configuration indicate
+should generally be left alone, keep the documented defaults unless I
+explicitly ask for something else.
+Do not change settings that the README or the Docker Compose configuration
+indicate should not be changed.
+```
+
+The exact prompt that works best may vary depending on the coding agent and
+model you use.
+
+> [!CAUTION]
+> You use coding agents at your own risk. You are responsible for the
+> permissions and access you give them. The maintainer of this project is not
+> liable for any damage or data loss resulting from their use. Take appropriate
+> precautions such as sandboxed access and limited permissions, and do not run
+> them with `--yolo` or similar options that bypass safety checks.
 
 ### Instructions
 
@@ -162,6 +202,8 @@ You are welcome to help out!
 [badge-actions-status]: https://github.com/mserajnik/lostcityrs-docker/actions/workflows/build-docker-images.yaml/badge.svg
 [badge-actions-status-url]: https://github.com/mserajnik/lostcityrs-docker/actions/workflows/build-docker-images.yaml
 
+[claude-code]: https://www.anthropic.com/product/claude-code
+[codex]: https://openai.com/codex
 [docker]: https://docs.docker.com/get-docker/
 [docker-compose]: https://docs.docker.com/compose/install/
 [lostcityrs]: https://github.com/LostCityRS
