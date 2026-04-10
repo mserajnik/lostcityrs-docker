@@ -54,7 +54,7 @@ else
   set -e
 
   if [[ $gh_status -ne 0 ]]; then
-    if grep -Fq "HTTP 404" <<< "$existing_tags"; then
+    if grep -Fq "HTTP 404" <<<"$existing_tags"; then
       existing_tags=""
     else
       printf '%s\n' "$existing_tags" >&2
@@ -62,7 +62,7 @@ else
     fi
   fi
 
-  if grep -Fxq "$combined_commit_hashes_tag" <<< "$existing_tags"; then
+  if grep -Fxq "$combined_commit_hashes_tag" <<<"$existing_tags"; then
     images_already_exist="true"
   fi
 fi

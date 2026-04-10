@@ -44,7 +44,7 @@ write_output() {
   local name="$1"
   local value="$2"
 
-  printf '%s=%s\n' "$name" "$value" >> "$GITHUB_OUTPUT"
+  printf '%s=%s\n' "$name" "$value" >>"$GITHUB_OUTPUT"
 }
 
 write_multiline_output() {
@@ -60,7 +60,7 @@ write_multiline_output() {
     printf '%s<<%s\n' "$name" "$delimiter"
     printf '%s\n' "$value"
     printf '%s\n' "$delimiter"
-  } >> "$GITHUB_OUTPUT"
+  } >>"$GITHUB_OUTPUT"
 }
 
 sanitize_docker_tag_fragment() {
@@ -92,7 +92,7 @@ package_version_endpoint() {
   local owner="$1"
   local package_name="$2"
   local package_version_id="$3"
- 
+
   printf '%s/packages/container/%s/versions/%s' \
     "$(package_owner_endpoint "$owner")" \
     "$package_name" \
@@ -107,15 +107,15 @@ package_owner_endpoint() {
   owner_type="$(gh api "/users/$owner" --jq '.type')"
 
   case "$owner_type" in
-    Organization)
-      namespace="orgs"
-      ;;
-    User)
-      namespace="users"
-      ;;
-    *)
-      fail "Unsupported package owner type '$owner_type' for '$owner'"
-      ;;
+  Organization)
+    namespace="orgs"
+    ;;
+  User)
+    namespace="users"
+    ;;
+  *)
+    fail "Unsupported package owner type '$owner_type' for '$owner'"
+    ;;
   esac
 
   printf '/%s/%s' "$namespace" "$owner"
