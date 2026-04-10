@@ -19,6 +19,7 @@
 set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=.github/scripts/helpers.sh
 source "$script_dir/helpers.sh"
 
 require_env REGISTRY
@@ -39,33 +40,33 @@ require_env OCI_ANNOTATION_BASE_NAME
 
 image="$REGISTRY/$IMAGE_NAME"
 timestamp="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+# shellcheck disable=SC2153
 architectures="$(trim "$ARCHITECTURES")"
 
 declare -a tags=()
-declare -a prefixes=()
 declare -a metadata_entries=()
 declare -a label_lines=()
-declare -a annotation_lines=()
+declare -a manifest_annotation_lines=()
+declare -a index_annotation_lines=()
+declare -a build_args=()
 
-platforms=""
-needs_qemu="false"
+build_amd64="false"
+build_arm64="false"
+is_multi_arch="false"
 ref_name="$image:$COMBINED_COMMIT_HASHES_TAG"
+dockerfile="./Dockerfile"
 
 case "$architectures" in
-  both|"Both x86_64 and aarch64")
-    platforms="linux/amd64,linux/arm64"
-    needs_qemu="true"
-    prefixes=("manifest" "index")
+  both|"Both amd64 and arm64")
+    build_amd64="true"
+    build_arm64="true"
+    is_multi_arch="true"
     ;;
-  amd64|"x86_64 only")
-    platforms="linux/amd64"
-    needs_qemu="false"
-    prefixes=("manifest")
+  amd64|"amd64 only")
+    build_amd64="true"
     ;;
-  arm64|"aarch64 only")
-    platforms="linux/arm64"
-    needs_qemu="true"
-    prefixes=("manifest")
+  arm64|"arm64 only")
+    build_arm64="true"
     ;;
   *)
     fail "Unsupported architectures value '$architectures'"
@@ -80,6 +81,8 @@ tags+=(
   "$image:$VERSION"
   "$image:$COMBINED_COMMIT_HASHES_TAG"
 )
+
+build_args+=("LOST_CITY_RS_VERSION=$VERSION")
 
 metadata_entries=(
   "created=$timestamp"
@@ -102,23 +105,40 @@ for entry in "${metadata_entries[@]}"; do
   value="${entry#*=}"
 
   label_lines+=("org.opencontainers.image.$key=$value")
+  manifest_annotation_lines+=("manifest:org.opencontainers.image.$key=$value")
 
-  for prefix in "${prefixes[@]}"; do
-    annotation_lines+=("$prefix:org.opencontainers.image.$key=$value")
-  done
+  if [[ "$is_multi_arch" == "true" ]]; then
+    index_annotation_lines+=("index:org.opencontainers.image.$key=$value")
+  fi
 done
 
 printf -v tags_output '%s,' "${tags[@]}"
 tags_output="${tags_output%,}"
 
-printf -v annotations_output '%s\n' "${annotation_lines[@]}"
-annotations_output="${annotations_output%$'\n'}"
+printf -v manifest_annotations_output '%s\n' "${manifest_annotation_lines[@]}"
+manifest_annotations_output="${manifest_annotations_output%$'\n'}"
+
+if ((${#index_annotation_lines[@]} > 0)); then
+  printf -v index_annotations_output '%s\n' "${index_annotation_lines[@]}"
+  index_annotations_output="${index_annotations_output%$'\n'}"
+else
+  index_annotations_output=""
+fi
 
 printf -v labels_output '%s\n' "${label_lines[@]}"
 labels_output="${labels_output%$'\n'}"
 
-write_output platforms "$platforms"
-write_output needs_qemu "$needs_qemu"
+printf -v build_args_output '%s\n' "${build_args[@]}"
+build_args_output="${build_args_output%$'\n'}"
+
+write_output image "$image"
+write_output package_name "${IMAGE_NAME##*/}"
+write_output dockerfile "$dockerfile"
+write_output build_amd64 "$build_amd64"
+write_output build_arm64 "$build_arm64"
+write_output is_multi_arch "$is_multi_arch"
 write_output tags "$tags_output"
-write_multiline_output annotations "$annotations_output"
+write_multiline_output build_args "$build_args_output"
+write_multiline_output manifest_annotations "$manifest_annotations_output"
+write_multiline_output index_annotations "$index_annotations_output"
 write_multiline_output labels "$labels_output"

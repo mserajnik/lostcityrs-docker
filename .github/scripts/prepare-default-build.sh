@@ -19,6 +19,7 @@
 set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=.github/scripts/helpers.sh
 source "$script_dir/helpers.sh"
 
 require_env GH_TOKEN
@@ -45,6 +46,7 @@ if [[ "$GITHUB_EVENT_NAME" == "schedule" && "$(date +%u)" -eq 1 ]]; then
 elif [[ "$force_rebuild" == "true" ]]; then
   images_already_exist="false"
 else
+  # shellcheck disable=SC2153
   package_endpoint="$(package_versions_endpoint "$PACKAGE_OWNER" "$PACKAGE_NAME")"
   set +e
   existing_tags="$(gh api --paginate "$package_endpoint?per_page=100" --jq '.[].metadata.container.tags[]?' 2>&1)"

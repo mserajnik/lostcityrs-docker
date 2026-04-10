@@ -7,7 +7,7 @@
 This is a simple, Docker-based solution for running [Lost City RS][lostcityrs].
 It offers:
 
-+ __Prebuilt Docker images for both `x86_64` and `aarch64`, leveraging GitHub__
++ __Prebuilt Docker images for both `amd64` and `arm64`, leveraging GitHub__
   __Actions:__ simply pull the provided image for your architecture and get
   started
 + __The ability to run Lost City RS configured for any of its supported__
