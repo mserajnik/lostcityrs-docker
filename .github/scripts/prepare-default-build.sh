@@ -28,46 +28,110 @@ require_env PACKAGE_OWNER
 require_env PACKAGE_NAME
 require_env ENGINE_REPOSITORY_OWNER
 require_env ENGINE_REPOSITORY_NAME
-require_env ENGINE_REPOSITORY_REF
 require_env CONTENT_REPOSITORY_OWNER
 require_env CONTENT_REPOSITORY_NAME
-require_env CONTENT_REPOSITORY_REF
-require_env VERSION
+require_env VERSIONS
 
 force_rebuild="${FORCE_REBUILD:-false}"
-images_already_exist="false"
-
-engine_commit_hash="$(gh api "/repos/$ENGINE_REPOSITORY_OWNER/$ENGINE_REPOSITORY_NAME/commits/$ENGINE_REPOSITORY_REF" --jq '.sha')"
-content_commit_hash="$(gh api "/repos/$CONTENT_REPOSITORY_OWNER/$CONTENT_REPOSITORY_NAME/commits/$CONTENT_REPOSITORY_REF" --jq '.sha')"
-combined_commit_hashes_tag="$VERSION-engine.${engine_commit_hash:0:7}-content.${content_commit_hash:0:7}"
+schedule_force_build="false"
 
 if [[ "$GITHUB_EVENT_NAME" == "schedule" && "$(date +%u)" -eq 1 ]]; then
-  images_already_exist="false"
-elif [[ "$force_rebuild" == "true" ]]; then
-  images_already_exist="false"
-else
-  # shellcheck disable=SC2153
-  package_endpoint="$(package_versions_endpoint "$PACKAGE_OWNER" "$PACKAGE_NAME")"
+  schedule_force_build="true"
+fi
+
+resolve_commit_hash() {
+  local repository_owner="$1"
+  local repository_name="$2"
+  local repository_ref="$3"
+
+  gh api "/repos/$repository_owner/$repository_name/commits/$repository_ref" \
+    --jq '.sha'
+}
+
+existing_tags_for_package() {
+  local package_owner="$1"
+  local package_name="$2"
+  local endpoint
+  local tags
+  local status
+
+  endpoint="$(package_versions_endpoint "$package_owner" "$package_name")"
+
   set +e
-  existing_tags="$(gh api --paginate "$package_endpoint?per_page=100" --jq '.[].metadata.container.tags[]?' 2>&1)"
-  gh_status=$?
+  tags="$(gh api --paginate "$endpoint?per_page=100" \
+    --jq '.[].metadata.container.tags[]?' 2>&1)"
+  status=$?
   set -e
 
-  if [[ $gh_status -ne 0 ]]; then
-    if grep -Fq "HTTP 404" <<<"$existing_tags"; then
-      existing_tags=""
-    else
-      printf '%s\n' "$existing_tags" >&2
-      fail "Failed to query package versions for '$PACKAGE_OWNER/$PACKAGE_NAME'"
+  if [[ $status -ne 0 ]]; then
+    if grep -Fq "HTTP 404" <<<"$tags"; then
+      printf '%s' ""
+      return 0
+    fi
+
+    printf '%s\n' "$tags" >&2
+    fail "Failed to query package versions for '$package_owner/$package_name'"
+  fi
+
+  printf '%s' "$tags"
+}
+
+# shellcheck disable=SC2153
+mapfile -t versions < <(jq -r '.[]' <<<"$VERSIONS")
+
+# The package is shared across all versions, so we query its tags once and
+# reuse the result for each version's existence check.
+# shellcheck disable=SC2153
+existing_tags="$(existing_tags_for_package "$PACKAGE_OWNER" "$PACKAGE_NAME")"
+
+build_metadata="{}"
+declare -a versions_to_build=()
+any_images_to_build="false"
+
+for version in "${versions[@]}"; do
+  engine_commit_hash="$(resolve_commit_hash \
+    "$ENGINE_REPOSITORY_OWNER" "$ENGINE_REPOSITORY_NAME" "$version")"
+  content_commit_hash="$(resolve_commit_hash \
+    "$CONTENT_REPOSITORY_OWNER" "$CONTENT_REPOSITORY_NAME" "$version")"
+  combined_commit_hashes_tag="$version"
+  combined_commit_hashes_tag+="-engine.${engine_commit_hash:0:7}"
+  combined_commit_hashes_tag+="-content.${content_commit_hash:0:7}"
+
+  images_already_exist="false"
+
+  if [[ "$schedule_force_build" != "true" && "$force_rebuild" != "true" ]]; then
+    if grep -Fxq "$combined_commit_hashes_tag" <<<"$existing_tags"; then
+      images_already_exist="true"
     fi
   fi
 
-  if grep -Fxq "$combined_commit_hashes_tag" <<<"$existing_tags"; then
-    images_already_exist="true"
+  if [[ "$images_already_exist" != "true" ]]; then
+    any_images_to_build="true"
+    versions_to_build+=("$version")
   fi
+
+  build_metadata="$(jq \
+    --arg version "$version" \
+    --arg engine_commit_hash "$engine_commit_hash" \
+    --arg content_commit_hash "$content_commit_hash" \
+    --arg combined_commit_hashes_tag "$combined_commit_hashes_tag" \
+    --arg images_already_exist "$images_already_exist" \
+    '. + {
+       ($version): {
+         engine_commit_hash: $engine_commit_hash,
+         content_commit_hash: $content_commit_hash,
+         combined_commit_hashes_tag: $combined_commit_hashes_tag,
+         images_already_exist: $images_already_exist
+       }
+     }' <<<"$build_metadata")"
+done
+
+if ((${#versions_to_build[@]} > 0)); then
+  versions_to_build_json="$(printf '%s\n' "${versions_to_build[@]}" | jq -R . | jq -s -c .)"
+else
+  versions_to_build_json="[]"
 fi
 
-write_output engine_commit_hash "$engine_commit_hash"
-write_output content_commit_hash "$content_commit_hash"
-write_output combined_commit_hashes_tag "$combined_commit_hashes_tag"
-write_output images_already_exist "$images_already_exist"
+write_output build_metadata "$(jq -c '.' <<<"$build_metadata")"
+write_output versions_to_build "$versions_to_build_json"
+write_output any_images_to_build "$any_images_to_build"

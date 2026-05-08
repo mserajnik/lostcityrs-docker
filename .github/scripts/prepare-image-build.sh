@@ -27,6 +27,7 @@ require_env IMAGE_NAME
 require_env ARCHITECTURES
 require_env VERSION
 require_env ENGINE_COMMIT_HASH
+require_env CONTENT_COMMIT_HASH
 require_env COMBINED_COMMIT_HASHES_TAG
 require_env OCI_ANNOTATION_AUTHORS
 require_env OCI_ANNOTATION_URL
@@ -38,10 +39,28 @@ require_env OCI_ANNOTATION_TITLE
 require_env OCI_ANNOTATION_DESCRIPTION
 require_env OCI_ANNOTATION_BASE_NAME
 
-image="$REGISTRY/$IMAGE_NAME"
 timestamp="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 # shellcheck disable=SC2153
+registry="$(trim "$REGISTRY")"
+# shellcheck disable=SC2153
+image_name="$(trim "$IMAGE_NAME")"
+# shellcheck disable=SC2153
 architectures="$(trim "$ARCHITECTURES")"
+# shellcheck disable=SC2153
+version="$(trim "$VERSION")"
+# shellcheck disable=SC2153
+engine_commit_hash="$(trim "$ENGINE_COMMIT_HASH")"
+# shellcheck disable=SC2153
+content_commit_hash="$(trim "$CONTENT_COMMIT_HASH")"
+# shellcheck disable=SC2153
+combined_commit_hashes_tag="$(trim "$COMBINED_COMMIT_HASHES_TAG")"
+# shellcheck disable=SC2153
+oci_annotation_authors="$(trim "$OCI_ANNOTATION_AUTHORS")"
+# shellcheck disable=SC2153
+oci_annotation_vendor="$(trim "$OCI_ANNOTATION_VENDOR")"
+title="$(trim "$OCI_ANNOTATION_TITLE")"
+description="$(trim "$OCI_ANNOTATION_DESCRIPTION")"
+base_name="$(trim "$OCI_ANNOTATION_BASE_NAME")"
 
 declare -a tags=()
 declare -a metadata_entries=()
@@ -53,7 +72,8 @@ declare -a build_args=()
 build_amd64="false"
 build_arm64="false"
 is_multi_arch="false"
-ref_name="$image:$COMBINED_COMMIT_HASHES_TAG"
+image="$registry/$image_name"
+ref_name="$image:$combined_commit_hashes_tag"
 dockerfile="./Dockerfile"
 
 case "$architectures" in
@@ -73,31 +93,35 @@ arm64 | "arm64 only")
   ;;
 esac
 
-if [[ "$VERSION" == "254" ]]; then
+if [[ "$version" == "254" ]]; then
   tags+=("$image:latest")
 fi
 
 tags+=(
-  "$image:$VERSION"
-  "$image:$COMBINED_COMMIT_HASHES_TAG"
+  "$image:$version"
+  "$image:$combined_commit_hashes_tag"
 )
 
-build_args+=("LOST_CITY_RS_VERSION=$VERSION")
+build_args+=(
+  "LOST_CITY_RS_VERSION=$version"
+  "LOST_CITY_RS_ENGINE_REVISION=$engine_commit_hash"
+  "LOST_CITY_RS_CONTENT_REVISION=$content_commit_hash"
+)
 
 metadata_entries=(
   "created=$timestamp"
-  "authors=$OCI_ANNOTATION_AUTHORS"
+  "authors=$oci_annotation_authors"
   "url=$OCI_ANNOTATION_URL"
   "documentation=$OCI_ANNOTATION_DOCUMENTATION"
   "source=$OCI_ANNOTATION_SOURCE"
-  "version=$VERSION"
-  "revision=$ENGINE_COMMIT_HASH"
-  "vendor=$OCI_ANNOTATION_VENDOR"
+  "version=$version"
+  "revision=$engine_commit_hash"
+  "vendor=$oci_annotation_vendor"
   "licenses=$OCI_ANNOTATION_LICENSES"
   "ref.name=$ref_name"
-  "title=$OCI_ANNOTATION_TITLE"
-  "description=$OCI_ANNOTATION_DESCRIPTION"
-  "base.name=$OCI_ANNOTATION_BASE_NAME"
+  "title=$title"
+  "description=$description"
+  "base.name=$base_name"
 )
 
 for entry in "${metadata_entries[@]}"; do
@@ -132,7 +156,7 @@ printf -v build_args_output '%s\n' "${build_args[@]}"
 build_args_output="${build_args_output%$'\n'}"
 
 write_output image "$image"
-write_output package_name "${IMAGE_NAME##*/}"
+write_output package_name "${image_name##*/}"
 write_output dockerfile "$dockerfile"
 write_output build_amd64 "$build_amd64"
 write_output build_arm64 "$build_arm64"

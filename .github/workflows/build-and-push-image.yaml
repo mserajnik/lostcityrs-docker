@@ -13,10 +13,13 @@ on:
       push_images:
         type: boolean
         required: true
-      force_rebuild:
-        type: boolean
+      engine_commit_hash:
+        type: string
         required: true
-      trigger_event_name:
+      content_commit_hash:
+        type: string
+        required: true
+      combined_commit_hashes_tag:
         type: string
         required: true
 
@@ -39,9 +42,7 @@ jobs:
     runs-on: ubuntu-24.04
     permissions:
       contents: read
-      packages: read
     outputs:
-      images_already_exist: ${{ steps.prepare-default-build.outputs.images_already_exist }}
       image: ${{ steps.prepare-build-metadata.outputs.image }}
       package_name: ${{ steps.prepare-build-metadata.outputs.package_name }}
       dockerfile: ${{ steps.prepare-build-metadata.outputs.dockerfile }}
@@ -58,43 +59,20 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
-      # We check if the workflow was triggered by a schedule and if today is
-      # Monday, in which case we want to trigger a (re)build in any case (to
-      # keep the Docker images up-to-date).
-      #
-      # We also check if the "force rebuild" input is checked when the workflow
-      # is triggered manually; if yes, we also want to (re)build.
-      - name: Prepare default build
-        id: prepare-default-build
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GITHUB_EVENT_NAME: ${{ inputs.trigger_event_name }}
-          PACKAGE_OWNER: ${{ github.repository_owner }}
-          PACKAGE_NAME: lostcityrs
-          ENGINE_REPOSITORY_OWNER: LostCityRS
-          ENGINE_REPOSITORY_NAME: Engine-TS
-          ENGINE_REPOSITORY_REF: ${{ inputs.version }}
-          CONTENT_REPOSITORY_OWNER: LostCityRS
-          CONTENT_REPOSITORY_NAME: Content
-          CONTENT_REPOSITORY_REF: ${{ inputs.version }}
-          VERSION: ${{ inputs.version }}
-          FORCE_REBUILD: ${{ inputs.force_rebuild }}
-        run: ./.github/scripts/prepare-default-build.sh
-
       - name: Prepare build metadata
-        if: ${{ steps.prepare-default-build.outputs.images_already_exist != 'true' }}
         id: prepare-build-metadata
         env:
           ARCHITECTURES: both
           VERSION: ${{ inputs.version }}
-          ENGINE_COMMIT_HASH: ${{ steps.prepare-default-build.outputs.engine_commit_hash }}
-          COMBINED_COMMIT_HASHES_TAG: ${{ steps.prepare-default-build.outputs.combined_commit_hashes_tag }}
+          ENGINE_COMMIT_HASH: ${{ inputs.engine_commit_hash }}
+          CONTENT_COMMIT_HASH: ${{ inputs.content_commit_hash }}
+          COMBINED_COMMIT_HASHES_TAG: ${{ inputs.combined_commit_hashes_tag }}
         run: ./.github/scripts/prepare-image-build.sh
 
   build-amd64:
     name: Build amd64 image
     needs: prepare
-    if: ${{ needs.prepare.outputs.images_already_exist != 'true' && needs.prepare.outputs.build_amd64 == 'true' }}
+    if: ${{ needs.prepare.outputs.build_amd64 == 'true' }}
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -153,7 +131,7 @@ jobs:
   build-arm64:
     name: Build arm64 image
     needs: prepare
-    if: ${{ needs.prepare.outputs.images_already_exist != 'true' && needs.prepare.outputs.build_arm64 == 'true' }}
+    if: ${{ needs.prepare.outputs.build_arm64 == 'true' }}
     runs-on: ubuntu-24.04-arm
     permissions:
       contents: read
@@ -212,7 +190,7 @@ jobs:
   create-multi-platform-image-index:
     name: Create multi-platform image index
     needs: [prepare, build-amd64, build-arm64]
-    if: ${{ needs.prepare.outputs.images_already_exist != 'true' && inputs.push_images && needs.prepare.outputs.is_multi_arch == 'true' }}
+    if: ${{ inputs.push_images && needs.prepare.outputs.is_multi_arch == 'true' }}
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -246,7 +224,7 @@ jobs:
   cleanup-untagged-package-versions:
     name: Clean up untagged package versions
     needs: [prepare, build-amd64, build-arm64, create-multi-platform-image-index]
-    if: ${{ always() && needs.prepare.outputs.images_already_exist != 'true' && inputs.push_images && needs.prepare.outputs.is_multi_arch == 'true' && needs.create-multi-platform-image-index.result != 'success' }}
+    if: ${{ always() && inputs.push_images && needs.prepare.outputs.is_multi_arch == 'true' && needs.create-multi-platform-image-index.result != 'success' }}
     runs-on: ubuntu-24.04
     permissions:
       contents: read

@@ -53,7 +53,6 @@ write_multiline_output() {
   local name="$1"
   local value="$2"
   local delimiter
-
   delimiter="EOF_${name}_$(date +%s)_$RANDOM"
 
   {
