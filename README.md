@@ -7,24 +7,24 @@
 This is a simple, Docker-based solution for running [Lost City RS][lostcityrs].
 It offers:
 
-+ __Prebuilt Docker images for both `amd64` and `arm64`, leveraging GitHub__
+- __Prebuilt Docker images for both `amd64` and `arm64`, leveraging GitHub__
   __Actions:__ simply pull the provided image for your architecture and get
   started
-+ __The ability to run Lost City RS configured for any of its supported__
+- __The ability to run Lost City RS configured for any of its supported__
   __versions:__ prebuilt images for all fully playable versions ranging from
   `225` to `254` are provided
-+ __Seamless, automated database migrations:__ when pulling the latest Docker
+- __Seamless, automated database migrations:__ when pulling the latest Docker
   image and re-creating the container, migrations are applied automatically to
   keep your database up-to-date at all times
 
 The setup was created for personal use and its scope is limited to the
 following:
 
-+ A single world
-+ SQLite as the database backend
-+ Usage of the web client (it is not intended to expose ports other than the
+- A single world
+- SQLite as the database backend
+- Usage of the web client (it is not intended to expose ports other than the
   web client port)
-+ Accounts can be directly created through the web client (this means that to
+- Accounts can be directly created through the web client (this means that to
   disable public access, the web client has to be access-protected by other
   means, e.g., a reverse proxy with HTTP basic authentication)
 
@@ -38,24 +38,24 @@ Other configurations are probably possible, but not tested and unsupported.
 
 ## Table of contents
 
-+ [Install](#install)
-  + [Dependencies](#dependencies)
-  + [Using a coding agent](#using-a-coding-agent)
-  + [Instructions](#instructions)
-+ [Usage](#usage)
-  + [Starting](#starting)
-  + [Stopping](#stopping)
-  + [Updating](#updating)
-    + [Breaking changes](#breaking-changes)
-+ [Maintainer](#maintainer)
-+ [Contribute](#contribute)
-+ [License](#license)
+- [Install](#install)
+  - [Dependencies](#dependencies)
+  - [Using a coding agent](#using-a-coding-agent)
+  - [Instructions](#instructions)
+- [Usage](#usage)
+  - [Starting](#starting)
+  - [Stopping](#stopping)
+  - [Updating](#updating)
+    - [Breaking changes](#breaking-changes)
+- [Maintainer](#maintainer)
+- [Contribute](#contribute)
+- [License](#license)
 
 ## Install
 
 ### Dependencies
 
-+ [Docker][docker] (including [Compose V2][docker-compose])
+- [Docker][docker] (including [Compose V2][docker-compose])
 
 ### Using a coding agent
 
@@ -108,8 +108,8 @@ cp ./compose.yaml.example ./compose.yaml
 ```
 
 Next, adjust your `compose.yaml`. The first thing to decide on is which Docker
-image you want to use based on the version of Lost City RS you want to run.
-You can currently choose from the following versions:
+image you want to use based on the version of Lost City RS you want to run. You
+can currently choose from the following versions:
 
 | Supported version | Image                                |
 | ----------------- | ------------------------------------ |
@@ -201,13 +201,11 @@ You are welcome to help out!
 
 [badge-actions-status]: https://github.com/mserajnik/lostcityrs-docker/actions/workflows/build-docker-images.yaml/badge.svg
 [badge-actions-status-url]: https://github.com/mserajnik/lostcityrs-docker/actions/workflows/build-docker-images.yaml
-
 [claude-code]: https://www.anthropic.com/product/claude-code
 [codex]: https://openai.com/codex
 [docker]: https://docs.docker.com/get-docker/
 [docker-compose]: https://docs.docker.com/compose/install/
 [lostcityrs]: https://github.com/LostCityRS
-
 [issues]: https://github.com/mserajnik/lostcityrs-docker/issues
 [maintainer]: https://github.com/mserajnik
 [pull-requests]: https://github.com/mserajnik/lostcityrs-docker/pulls
