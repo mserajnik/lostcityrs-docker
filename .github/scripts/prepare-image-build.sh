@@ -89,7 +89,7 @@ arm64 | "arm64 only")
   build_arm64="true"
   ;;
 *)
-  fail "Unsupported architectures value '$architectures'"
+  fail "Unsupported architectures value '$architectures'."
   ;;
 esac
 

@@ -70,7 +70,7 @@ existing_tags_for_package() {
     fi
 
     printf '%s\n' "$tags" >&2
-    fail "Failed to query package versions for '$package_owner/$package_name'"
+    fail "Failed to query package versions for '$package_owner/$package_name'."
   fi
 
   printf '%s' "$tags"
