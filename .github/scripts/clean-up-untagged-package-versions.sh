@@ -19,7 +19,7 @@
 set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck source=.github/scripts/helpers.sh
+# shellcheck source-path=SCRIPTDIR
 source "$script_dir/helpers.sh"
 
 require_env GH_TOKEN
