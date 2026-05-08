@@ -17,7 +17,9 @@
 ARG DEBIAN_FRONTEND=noninteractive
 ARG LOST_CITY_RS_VERSION=254
 ARG LOST_CITY_RS_ENGINE_REPOSITORY=https://github.com/LostCityRS/Engine-TS.git
+ARG LOST_CITY_RS_ENGINE_REVISION=${LOST_CITY_RS_VERSION}
 ARG LOST_CITY_RS_CONTENT_REPOSITORY=https://github.com/LostCityRS/Content.git
+ARG LOST_CITY_RS_CONTENT_REVISION=${LOST_CITY_RS_VERSION}
 ARG LOST_CITY_RS_USER_ID=1000
 ARG LOST_CITY_RS_GROUP_ID=1000
 ARG LOST_CITY_RS_USER_NAME=lostcityrs
@@ -29,7 +31,9 @@ ARG TARGETARCH
 ARG DEBIAN_FRONTEND
 ARG LOST_CITY_RS_VERSION
 ARG LOST_CITY_RS_ENGINE_REPOSITORY
+ARG LOST_CITY_RS_ENGINE_REVISION
 ARG LOST_CITY_RS_CONTENT_REPOSITORY
+ARG LOST_CITY_RS_CONTENT_REVISION
 ARG LOST_CITY_RS_USER_ID
 ARG LOST_CITY_RS_GROUP_ID
 ARG LOST_CITY_RS_USER_NAME
@@ -96,11 +100,15 @@ RUN \
     useradd -u "$LOST_CITY_RS_USER_ID" -g "$LOST_CITY_RS_GROUP_NAME" -d "/home/$LOST_CITY_RS_USER_NAME" -s /bin/sh -m "$LOST_CITY_RS_USER_NAME"; \
   fi && \
   mkdir -p /opt/lostcityrs && \
-  git clone "$LOST_CITY_RS_ENGINE_REPOSITORY" --single-branch --depth=1 -b "$LOST_CITY_RS_VERSION" /opt/lostcityrs/engine && \
-  git clone "$LOST_CITY_RS_CONTENT_REPOSITORY" --single-branch --depth=1 -b "$LOST_CITY_RS_VERSION" /opt/lostcityrs/content && \
-  chown -R $LOST_CITY_RS_USER_NAME:$LOST_CITY_RS_GROUP_NAME /opt/lostcityrs && \
+  git clone "$LOST_CITY_RS_ENGINE_REPOSITORY" /opt/lostcityrs/engine && \
+  git -C /opt/lostcityrs/engine -c advice.detachedHead=false checkout "$LOST_CITY_RS_ENGINE_REVISION" && \
+  rm -rf /opt/lostcityrs/engine/.git && \
+  git clone "$LOST_CITY_RS_CONTENT_REPOSITORY" /opt/lostcityrs/content && \
+  git -C /opt/lostcityrs/content -c advice.detachedHead=false checkout "$LOST_CITY_RS_CONTENT_REVISION" && \
+  rm -rf /opt/lostcityrs/content/.git && \
+  chown -R "$LOST_CITY_RS_USER_NAME:$LOST_CITY_RS_GROUP_NAME" /opt/lostcityrs && \
   # See https://github.com/boxboat/fixuid
-  curl -SsL https://github.com/boxboat/fixuid/releases/download/v0.6.0/fixuid-0.6.0-linux-$TARGETARCH.tar.gz | tar -C /usr/local/bin -xzf - && \
+  curl -SsL "https://github.com/boxboat/fixuid/releases/download/v0.6.0/fixuid-0.6.0-linux-$TARGETARCH.tar.gz" | tar -C /usr/local/bin -xzf - && \
   chown root:root /usr/local/bin/fixuid && \
   chmod 4755 /usr/local/bin/fixuid && \
   mkdir -p /etc/fixuid && \
