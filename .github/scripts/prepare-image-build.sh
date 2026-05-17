@@ -16,6 +16,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+# Produces the per build metadata consumed by the reusable build workflow:
+# Dockerfile path, target architectures, image tags, build arguments, OCI
+# annotations, and labels.
+
 set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

@@ -16,6 +16,11 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+# Resolves the current upstream Lost City RS commits for each version (engine
+# and content) and decides whether the default workflow should build images
+# this run (skipping when images for those commits already exist, unless the
+# run is a scheduled Monday rebuild or a manual force rebuild).
+
 set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
