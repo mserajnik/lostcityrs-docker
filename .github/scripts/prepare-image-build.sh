@@ -68,20 +68,20 @@ ref_name="$image:$combined_commit_hashes_tag"
 dockerfile="./Dockerfile"
 
 case "$architectures" in
-both | "Both amd64 and arm64")
-  build_amd64="true"
-  build_arm64="true"
-  is_multi_arch="true"
-  ;;
-amd64 | "amd64 only")
-  build_amd64="true"
-  ;;
-arm64 | "arm64 only")
-  build_arm64="true"
-  ;;
-*)
-  fail "Unsupported architectures value '$architectures'."
-  ;;
+  both | "Both amd64 and arm64")
+    build_amd64="true"
+    build_arm64="true"
+    is_multi_arch="true"
+    ;;
+  amd64 | "amd64 only")
+    build_amd64="true"
+    ;;
+  arm64 | "arm64 only")
+    build_arm64="true"
+    ;;
+  *)
+    fail "Unsupported architectures value '$architectures'."
+    ;;
 esac
 
 if [[ "$version" == "254" ]]; then
