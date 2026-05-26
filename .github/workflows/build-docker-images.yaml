@@ -56,7 +56,7 @@ jobs:
       # matrix jobs below can index into.
       #
       # We force a rebuild on a Monday schedule run (to keep the Docker images
-      # up-to-date even when no upstream commits land) and on manual runs with
+      # up to date even when no upstream commits land) and on manual runs with
       # the "force rebuild" input checked.
       - name: Prepare default build
         id: prepare-default-build

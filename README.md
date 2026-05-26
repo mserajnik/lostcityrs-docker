@@ -16,7 +16,7 @@ It offers:
   `225` to `254` are provided
 - __Seamless, automated database migrations:__ when pulling the latest Docker
   image and re-creating the container, migrations are applied automatically to
-  keep your database up-to-date at all times
+  keep your database up to date at all times
 
 The setup was created for personal use and its scope is limited to the
 following:
@@ -34,8 +34,8 @@ Other configurations are probably possible, but not tested and unsupported.
 > [!NOTE]
 > The Docker images are built on a daily schedule, unless there have been no
 > new commits to Lost City RS since the last build. Additionally, every Monday,
-> the latest images are rebuilt to ensure software and dependencies are
-> up-to-date, even if there have been no updates to Lost City RS itself.
+> the latest images are rebuilt to ensure software and dependencies are up to
+> date, even if there have been no updates to Lost City RS itself.
 
 ## Table of contents
 
