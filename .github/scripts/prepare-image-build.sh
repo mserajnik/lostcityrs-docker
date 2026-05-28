@@ -65,7 +65,24 @@ build_arm64="false"
 is_multi_arch="false"
 image="$registry/$image_name"
 ref_name="$image:$combined_commit_hashes_tag"
-dockerfile="./Dockerfile"
+
+# Lost City RS version `274` and onwards build on Node.js (with `npm` and
+# `tsx`); everything before that still runs on Bun. The two runtimes need
+# different base images and entrypoints, so we keep a dedicated Dockerfile per
+# runtime and pick the right one based on the major version that is being
+# built. The base image annotation is overridden accordingly.
+case "$version" in
+  225 | 244 | 245.2 | 254)
+    dockerfile="./Dockerfile"
+    ;;
+  274)
+    dockerfile="./Dockerfile.node"
+    base_name="node:24-trixie-slim"
+    ;;
+  *)
+    fail "No Dockerfile mapping configured for version '$version'."
+    ;;
+esac
 
 case "$architectures" in
   both | "Both amd64 and arm64")
@@ -84,7 +101,7 @@ case "$architectures" in
     ;;
 esac
 
-if [[ "$version" == "254" ]]; then
+if [[ "$version" == "274" ]]; then
   tags+=("$image:latest")
 fi
 

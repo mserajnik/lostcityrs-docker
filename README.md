@@ -10,24 +10,24 @@ It offers:
 
 - __Prebuilt Docker images for both `amd64` and `arm64`, leveraging GitHub__
   __Actions:__ simply pull the provided image for your architecture and get
-  started
+  started.
 - __The ability to run Lost City RS configured for any of its supported__
   __versions:__ prebuilt images for all fully playable versions ranging from
-  `225` to `254` are provided
+  `225` to `274` are provided.
 - __Seamless, automated database migrations:__ when pulling the latest Docker
   image and re-creating the container, migrations are applied automatically to
-  keep your database up to date at all times
+  keep your database up to date at all times.
 
 The setup was created for personal use and its scope is limited to the
 following:
 
-- A single world
-- SQLite as the database backend
+- A single world.
+- SQLite as the database backend.
 - Usage of the web client (it is not intended to expose ports other than the
-  web client port)
+  web client port).
 - Accounts can be directly created through the web client (this means that to
   disable public access, the web client has to be access-protected by other
-  means, e.g., a reverse proxy with HTTP basic authentication)
+  means, e.g., a reverse proxy with HTTP basic authentication).
 
 Other configurations are probably possible, but not tested and unsupported.
 
@@ -114,6 +114,7 @@ can currently choose from the following versions:
 
 | Supported version | Image                                |
 | ----------------- | ------------------------------------ |
+| `274`             | `ghcr.io/mserajnik/lostcityrs:274`   |
 | `254`             | `ghcr.io/mserajnik/lostcityrs:254`   |
 | `245.2`           | `ghcr.io/mserajnik/lostcityrs:245.2` |
 | `244`             | `ghcr.io/mserajnik/lostcityrs:244`   |
@@ -148,7 +149,7 @@ This pulls the Docker image first and afterwards automatically creates and
 starts the container.
 
 Afterwards, you can open your browser and navigate to
-`http://localhost:8080/rs2.cgi` to access the Lost City RS web client.
+`http://localhost:8888/rs2.cgi` to access the Lost City RS web client.
 
 From here, feel free to forward the port to the outside world or set up a
 reverse proxy as you see fit.

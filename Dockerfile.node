@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 ARG DEBIAN_FRONTEND=noninteractive
-ARG LOST_CITY_RS_VERSION=254
+ARG LOST_CITY_RS_VERSION=274
 ARG LOST_CITY_RS_ENGINE_REPOSITORY=https://github.com/LostCityRS/Engine-TS.git
 ARG LOST_CITY_RS_ENGINE_REVISION=${LOST_CITY_RS_VERSION}
 ARG LOST_CITY_RS_CONTENT_REPOSITORY=https://github.com/LostCityRS/Content.git
@@ -12,7 +12,7 @@ ARG LOST_CITY_RS_GROUP_ID=1000
 ARG LOST_CITY_RS_USER_NAME=lostcityrs
 ARG LOST_CITY_RS_GROUP_NAME=lostcityrs
 
-FROM oven/bun:debian
+FROM node:24-trixie-slim
 
 ARG TARGETARCH
 ARG DEBIAN_FRONTEND
@@ -59,21 +59,15 @@ ENV DB_BACKEND=sqlite
 ENV HUSKY=0
 
 RUN \
-  # `openjdk-21-jdk` is required only by versions `244` and `245.2`, whose
-  # startup cache packing compiles RuneScript with a Java tool; the other
-  # versions this image builds (`225` and `254`) do not use it but share this
-  # Dockerfile. It also transitively provides `ca-certificates`, which the
-  # HTTPS `fixuid` download below relies on; if Java is ever removed entirely,
-  # `ca-certificates` has to be added to the install list explicitly.
   apt update && \
   apt install -y --no-install-recommends \
+    ca-certificates \
     curl \
     git \
-    netcat-openbsd \
-    openjdk-21-jdk && \
-  # The Debian-based Bun Docker image has a user called `bun` with UID 1000 and
-  # GID 1000 by default. Since we allow configuration of the name, UID and GID
-  # of the user and group that should be used in the container, we need to
+    netcat-openbsd && \
+  # The Debian-based Node Docker image has a user called `node` with UID 1000
+  # and GID 1000 by default. Since we allow configuration of the name, UID and
+  # GID of the user and group that should be used in the container, we need to
   # either rename the existing user and group or create a new user and group
   # with the specified name, UID and GID.
   cd /tmp && \
@@ -112,7 +106,7 @@ RUN \
   apt clean -y && \
   rm -rf /var/lib/apt/lists/*
 
-COPY --chmod=755 ./docker-cmd-start.sh /usr/local/bin/start
+COPY --chmod=755 ./docker-cmd-start-node.sh /usr/local/bin/start
 
 USER $LOST_CITY_RS_USER_NAME
 
@@ -127,7 +121,7 @@ RUN \
     ln -sn "/opt/lostcityrs/database/db.sqlite$suffix" "/opt/lostcityrs/engine/db.sqlite$suffix"; \
   done && \
   cd /opt/lostcityrs/engine && \
-  bun install
+  npm ci
 
 WORKDIR "/home/$LOST_CITY_RS_USER_NAME"
 CMD ["start"]

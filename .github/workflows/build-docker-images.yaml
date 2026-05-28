@@ -16,7 +16,9 @@ on:
       - .github/workflows/build-and-push-image.yaml
       - .github/workflows/build-docker-images.yaml
       - Dockerfile
+      - Dockerfile.node
       - docker-cmd-start.sh
+      - docker-cmd-start-node.sh
   pull_request:
     branches:
       - master
@@ -26,7 +28,9 @@ on:
       - .github/workflows/build-and-push-image.yaml
       - .github/workflows/build-docker-images.yaml
       - Dockerfile
+      - Dockerfile.node
       - docker-cmd-start.sh
+      - docker-cmd-start-node.sh
   workflow_dispatch:
     inputs:
       force_rebuild:
@@ -69,7 +73,7 @@ jobs:
           ENGINE_REPOSITORY_NAME: Engine-TS
           CONTENT_REPOSITORY_OWNER: LostCityRS
           CONTENT_REPOSITORY_NAME: Content
-          VERSIONS: '["254", "245.2", "244", "225"]'
+          VERSIONS: '["274", "254", "245.2", "244", "225"]'
           FORCE_REBUILD: ${{ inputs.force_rebuild }}
         run: ./.github/scripts/prepare-default-build.sh
 
@@ -112,5 +116,5 @@ jobs:
         with:
           package-name: lostcityrs
           package-type: container
-          # 7 builds * (1 index + 2 manifests) * 4 versions = 84.
-          min-versions-to-keep: 84
+          # 7 builds * (1 index + 2 manifests) * 5 versions = 105.
+          min-versions-to-keep: 105
