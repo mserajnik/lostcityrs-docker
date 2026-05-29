@@ -59,9 +59,12 @@ jobs:
       # Per-version build metadata gets emitted as a single JSON blob that the
       # matrix jobs below can index into.
       #
-      # We force a rebuild on a Monday schedule run (to keep the Docker images
-      # up to date even when no upstream commits land) and on manual runs with
-      # the "force rebuild" input checked.
+      # We check if the workflow was triggered by a schedule and if today is
+      # Monday, in which case we want to trigger a (re)build in any case (to
+      # keep the Docker images up to date).
+      #
+      # We also check if the "force rebuild" input is checked when the workflow
+      # is triggered manually; if yes, we also want to (re)build.
       - name: Prepare default build
         id: prepare-default-build
         env:
@@ -76,6 +79,29 @@ jobs:
           VERSIONS: '["274", "254", "245.2", "244", "225"]'
           FORCE_REBUILD: ${{ inputs.force_rebuild }}
         run: ./.github/scripts/prepare-default-build.sh
+
+      # Compares the upstream engine files our setup couples to (the
+      # configuration loader, `.gitignore`, the SQLite migration set) against
+      # the commit each version was last reviewed against, and additionally
+      # trips when a Bun version gains a `package-lock.json` (the artifact of
+      # the upstream switch to Node). Fails the workflow on any drift so the
+      # change can be reviewed before images are (re)built; after refreshing
+      # any affected local files, bump the matching version's commit hash in
+      # `DRIFT_KNOWN_COMMITS` below.
+      - name: Check for upstream drift
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ENGINE_REPOSITORY: LostCityRS/Engine-TS
+          BUILD_METADATA: ${{ steps.prepare-default-build.outputs.build_metadata }}
+          DRIFT_KNOWN_COMMITS: |
+            {
+              "225": "e1dea19f256c7ff1a89d47024c811c755ad2184d",
+              "244": "9aadcec4e9560b810b5e5eee31aadc67f3b206cd",
+              "245.2": "3c16994ca4ba51b4e04f88316c1f7395b0c4bb8a",
+              "254": "2e3bcf4392200e84dd15ce67008c5d41fa4537aa",
+              "274": "5b9e2ab0d03c95466622aa1263ee328257e0e936"
+            }
+        run: ./.github/scripts/check-upstream-drift.sh
 
   build-and-push-images:
     name: Build and push images
@@ -94,7 +120,7 @@ jobs:
       push_images: ${{ github.event_name != 'pull_request' }}
       engine_commit_hash: ${{ fromJSON(needs.setup.outputs.build_metadata)[matrix.version].engine_commit_hash }}
       content_commit_hash: ${{ fromJSON(needs.setup.outputs.build_metadata)[matrix.version].content_commit_hash }}
-      combined_commit_hashes_tag: ${{ fromJSON(needs.setup.outputs.build_metadata)[matrix.version].combined_commit_hashes_tag }}
+      combined_revision_tag: ${{ fromJSON(needs.setup.outputs.build_metadata)[matrix.version].combined_revision_tag }}
 
   # Keep only a short retention window. Long-term availability of older images
   # is explicitly not promised: breaking changes accumulate over time, and

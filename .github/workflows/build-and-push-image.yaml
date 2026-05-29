@@ -22,7 +22,7 @@ on:
       content_commit_hash:
         type: string
         required: true
-      combined_commit_hashes_tag:
+      combined_revision_tag:
         type: string
         required: true
 
@@ -69,7 +69,7 @@ jobs:
           VERSION: ${{ inputs.version }}
           ENGINE_COMMIT_HASH: ${{ inputs.engine_commit_hash }}
           CONTENT_COMMIT_HASH: ${{ inputs.content_commit_hash }}
-          COMBINED_COMMIT_HASHES_TAG: ${{ inputs.combined_commit_hashes_tag }}
+          COMBINED_REVISION_TAG: ${{ inputs.combined_revision_tag }}
         run: ./.github/scripts/prepare-image-build.sh
 
   build-amd64:

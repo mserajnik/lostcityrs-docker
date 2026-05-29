@@ -19,7 +19,7 @@ require_env ARCHITECTURES
 require_env VERSION
 require_env ENGINE_COMMIT_HASH
 require_env CONTENT_COMMIT_HASH
-require_env COMBINED_COMMIT_HASHES_TAG
+require_env COMBINED_REVISION_TAG
 require_env OCI_ANNOTATION_AUTHORS
 require_env OCI_ANNOTATION_URL
 require_env OCI_ANNOTATION_DOCUMENTATION
@@ -44,7 +44,7 @@ engine_commit_hash="$(trim "$ENGINE_COMMIT_HASH")"
 # shellcheck disable=SC2153
 content_commit_hash="$(trim "$CONTENT_COMMIT_HASH")"
 # shellcheck disable=SC2153
-combined_commit_hashes_tag="$(trim "$COMBINED_COMMIT_HASHES_TAG")"
+combined_revision_tag="$(trim "$COMBINED_REVISION_TAG")"
 # shellcheck disable=SC2153
 oci_annotation_authors="$(trim "$OCI_ANNOTATION_AUTHORS")"
 # shellcheck disable=SC2153
@@ -64,7 +64,7 @@ build_amd64="false"
 build_arm64="false"
 is_multi_arch="false"
 image="$registry/$image_name"
-ref_name="$image:$combined_commit_hashes_tag"
+ref_name="$image:$combined_revision_tag"
 
 # Lost City RS version `274` and onwards build on Node.js (with `npm` and
 # `tsx`); everything before that still runs on Bun. The two runtimes need
@@ -107,7 +107,7 @@ fi
 
 tags+=(
   "$image:$version"
-  "$image:$combined_commit_hashes_tag"
+  "$image:$combined_revision_tag"
 )
 
 build_args+=(

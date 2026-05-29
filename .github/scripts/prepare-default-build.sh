@@ -31,43 +31,6 @@ if [[ "$GITHUB_EVENT_NAME" == "schedule" && "$(date +%u)" -eq 1 ]]; then
   schedule_force_build="true"
 fi
 
-resolve_commit_hash() {
-  local repository_owner="$1"
-  local repository_name="$2"
-  local repository_ref="$3"
-
-  gh api "/repos/$repository_owner/$repository_name/commits/$repository_ref" \
-    --jq '.sha'
-}
-
-existing_tags_for_package() {
-  local package_owner="$1"
-  local package_name="$2"
-  local endpoint
-  local tags
-  local status
-
-  endpoint="$(package_versions_endpoint "$package_owner" "$package_name")"
-
-  set +e
-  tags="$(gh api --paginate "$endpoint?per_page=100" \
-    --jq '.[].metadata.container.tags[]?' 2>&1)"
-  status=$?
-  set -e
-
-  if [[ $status -ne 0 ]]; then
-    if grep -Fq "HTTP 404" <<<"$tags"; then
-      printf '%s' ""
-      return 0
-    fi
-
-    printf '%s\n' "$tags" >&2
-    fail "Failed to query package versions for '$package_owner/$package_name'."
-  fi
-
-  printf '%s' "$tags"
-}
-
 # shellcheck disable=SC2153
 mapfile -t versions < <(jq -r '.[]' <<<"$VERSIONS")
 
@@ -85,14 +48,14 @@ for version in "${versions[@]}"; do
     "$ENGINE_REPOSITORY_OWNER" "$ENGINE_REPOSITORY_NAME" "$version")"
   content_commit_hash="$(resolve_commit_hash \
     "$CONTENT_REPOSITORY_OWNER" "$CONTENT_REPOSITORY_NAME" "$version")"
-  combined_commit_hashes_tag="$version"
-  combined_commit_hashes_tag+="-engine.${engine_commit_hash:0:7}"
-  combined_commit_hashes_tag+="-content.${content_commit_hash:0:7}"
+  combined_revision_tag="$version"
+  combined_revision_tag+="-engine.${engine_commit_hash:0:7}"
+  combined_revision_tag+="-content.${content_commit_hash:0:7}"
 
   images_already_exist="false"
 
   if [[ "$schedule_force_build" != "true" && "$force_rebuild" != "true" ]]; then
-    if grep -Fxq "$combined_commit_hashes_tag" <<<"$existing_tags"; then
+    if grep -Fxq "$combined_revision_tag" <<<"$existing_tags"; then
       images_already_exist="true"
     fi
   fi
@@ -106,13 +69,13 @@ for version in "${versions[@]}"; do
     --arg version "$version" \
     --arg engine_commit_hash "$engine_commit_hash" \
     --arg content_commit_hash "$content_commit_hash" \
-    --arg combined_commit_hashes_tag "$combined_commit_hashes_tag" \
+    --arg combined_revision_tag "$combined_revision_tag" \
     --arg images_already_exist "$images_already_exist" \
     '. + {
        ($version): {
          engine_commit_hash: $engine_commit_hash,
          content_commit_hash: $content_commit_hash,
-         combined_commit_hashes_tag: $combined_commit_hashes_tag,
+         combined_revision_tag: $combined_revision_tag,
          images_already_exist: $images_already_exist
        }
      }' <<<"$build_metadata")"
