@@ -51,6 +51,7 @@ Other configurations are probably possible, but not tested and unsupported.
 - [Maintainer](#maintainer)
 - [Contribute](#contribute)
 - [Licenses](#licenses)
+- [Disclaimer](#disclaimer)
 
 ## Install
 
@@ -211,6 +212,15 @@ You are welcome to help out!
 - [`CC0-1.0`][license-cc0-1.0] (Configuration files)
 
 This project follows the [REUSE specification][reuse-spec].
+
+## Disclaimer
+
+lostcityrs-docker is an independent, community-made Docker setup for the
+open-source [Lost City RS][lostcityrs] project. It is not affiliated with,
+endorsed by, or sponsored by Jagex Limited, and it is not an official Lost City
+RS project.
+
+It is intended for private, non-commercial use only and comes with no warranty.
 
 [badge-build-status]: https://github.com/mserajnik/lostcityrs-docker/actions/workflows/build-docker-images.yaml/badge.svg
 [badge-build-status-url]: https://github.com/mserajnik/lostcityrs-docker/actions/workflows/build-docker-images.yaml
