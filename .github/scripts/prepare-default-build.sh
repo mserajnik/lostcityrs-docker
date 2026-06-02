@@ -88,5 +88,6 @@ else
 fi
 
 write_output build_metadata "$(jq -c '.' <<<"$build_metadata")"
+write_output versions "$(jq -c '.' <<<"$VERSIONS")"
 write_output versions_to_build "$versions_to_build_json"
 write_output any_images_to_build "$any_images_to_build"

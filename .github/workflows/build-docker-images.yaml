@@ -47,6 +47,7 @@ jobs:
       packages: read
     outputs:
       build_metadata: ${{ steps.prepare-default-build.outputs.build_metadata }}
+      versions: ${{ steps.prepare-default-build.outputs.versions }}
       versions_to_build: ${{ steps.prepare-default-build.outputs.versions_to_build }}
       any_images_to_build: ${{ steps.prepare-default-build.outputs.any_images_to_build }}
 
@@ -137,10 +138,26 @@ jobs:
       packages: write
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Compute protected package versions
+        id: protected-versions
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PACKAGE_OWNER: ${{ github.repository_owner }}
+          PACKAGE_NAME: lostcityrs
+          PROTECTED_TAGS: ${{ format('latest,{0}', join(fromJSON(needs.setup.outputs.versions), ',')) }}
+        run: ./.github/scripts/compute-protected-versions.sh
+
       - name: Delete old package versions
         uses: actions/delete-package-versions@v5
         with:
           package-name: lostcityrs
           package-type: container
           # 7 builds * (1 index + 2 manifests) * 5 versions = 105.
+          # The index a moving tag points at, and the per-arch manifests it
+          # references, are kept regardless via the `ignore-versions` regex;
+          # this count bounds the rest.
           min-versions-to-keep: 105
+          ignore-versions: ${{ steps.protected-versions.outputs.ignore_versions_regex }}
