@@ -127,10 +127,10 @@ can currently choose from the following versions:
 
 Since the Docker images are generally built only once a day, it is unlikely
 that there will be a build for every single Lost City RS commit combination.
-Older images are automatically deleted, roughly after a week; in practice, you
-should not rely on specific images staying available beyond the point in time
-when you originally pulled them. If you absolutely need images based on
-specific Lost City RS commits, you can always build them yourself instead.
+Older images are automatically deleted after 14 days; in practice, you should
+not rely on specific images staying available beyond the point in time when you
+originally pulled them. If you absolutely need images based on specific Lost
+City RS commits, you can always build them yourself instead.
 
 Aside from this, take a look at the `environment` section of the `app` service
 and make any adjustments necessary for your desired setup.
