@@ -53,7 +53,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       # We resolve the latest engine and content commit hashes for each
       # supported version and check whether matching images already exist.
