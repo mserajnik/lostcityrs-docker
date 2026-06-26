@@ -76,21 +76,20 @@ RUN \
   # of the user and group that should be used in the container, we need to
   # either rename the existing user and group or create a new user and group
   # with the specified name, UID and GID.
-  cd /tmp && \
   existing_group=$(getent group "$LOST_CITY_RS_GROUP_ID") || true && \
   existing_user=$(getent passwd "$LOST_CITY_RS_USER_ID") || true && \
   if [ -n "$existing_group" ]; then \
-    old_groupname=$(echo "$existing_group" | cut -d':' -f1) && \
+    old_groupname=${existing_group%%:*} && \
     groupmod -n "$LOST_CITY_RS_GROUP_NAME" "$old_groupname"; \
   else \
     groupadd -g "$LOST_CITY_RS_GROUP_ID" "$LOST_CITY_RS_GROUP_NAME"; \
   fi && \
   if [ -n "$existing_user" ]; then \
-    old_username=$(echo "$existing_user" | cut -d':' -f1) && \
+    old_username=${existing_user%%:*} && \
     usermod -l "$LOST_CITY_RS_USER_NAME" -d "/home/$LOST_CITY_RS_USER_NAME" "$old_username" && \
     mv "/home/$old_username" "/home/$LOST_CITY_RS_USER_NAME"; \
   else \
-    useradd -u "$LOST_CITY_RS_USER_ID" -g "$LOST_CITY_RS_GROUP_NAME" -d "/home/$LOST_CITY_RS_USER_NAME" -s /bin/sh -m "$LOST_CITY_RS_USER_NAME"; \
+    useradd -l -u "$LOST_CITY_RS_USER_ID" -g "$LOST_CITY_RS_GROUP_NAME" -d "/home/$LOST_CITY_RS_USER_NAME" -s /bin/sh -m "$LOST_CITY_RS_USER_NAME"; \
   fi && \
   mkdir -p /opt/lostcityrs && \
   git clone "$LOST_CITY_RS_ENGINE_REPOSITORY" /opt/lostcityrs/engine && \
@@ -101,7 +100,9 @@ RUN \
   rm -rf /opt/lostcityrs/content/.git && \
   chown -R "$LOST_CITY_RS_USER_NAME:$LOST_CITY_RS_GROUP_NAME" /opt/lostcityrs && \
   # See https://github.com/boxboat/fixuid
-  curl -SsL "https://github.com/boxboat/fixuid/releases/download/v0.6.0/fixuid-0.6.0-linux-$TARGETARCH.tar.gz" | tar -C /usr/local/bin -xzf - && \
+  curl -SsL "https://github.com/boxboat/fixuid/releases/download/v0.6.0/fixuid-0.6.0-linux-$TARGETARCH.tar.gz" -o /tmp/fixuid.tar.gz && \
+  tar -C /usr/local/bin -xzf /tmp/fixuid.tar.gz && \
+  rm /tmp/fixuid.tar.gz && \
   chown root:root /usr/local/bin/fixuid && \
   chmod 4755 /usr/local/bin/fixuid && \
   mkdir -p /etc/fixuid && \

@@ -33,6 +33,24 @@ jobs:
       - name: Run shellcheck
         run: find . -type f -not -path './.git/*' -name '*.sh' -print0 | xargs -0 shellcheck
 
+  hadolint:
+    name: hadolint
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Run hadolint
+        uses: hadolint/hadolint-action@v3.3.0
+
+      # There is no way to make the action find this file automatically (even
+      # in recursive mode it only searches for the literal `Dockerfile` name),
+      # so we run it explicitly here.
+      - name: Run hadolint (Dockerfile.node)
+        uses: hadolint/hadolint-action@v3.3.0
+        with:
+          dockerfile: Dockerfile.node
+
   reuse:
     name: REUSE compliance
     runs-on: ubuntu-24.04
