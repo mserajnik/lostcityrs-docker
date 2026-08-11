@@ -18,7 +18,9 @@
 
 set -eu
 
-eval "$(fixuid -q)"
+# Capture the `fixuid -q` exit status first since `eval` discards it.
+fixuid_output="$(fixuid -q)"
+eval "$fixuid_output"
 
 cd /opt/lost-city-rs/engine
 

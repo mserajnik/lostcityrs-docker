@@ -31,8 +31,12 @@ if [[ "$GITHUB_EVENT_NAME" == "schedule" && "$(date +%u)" -eq 1 ]]; then
   schedule_force_build="true"
 fi
 
+# Collect the versions first: `mapfile` reports only its own status, so a `jq`
+# failure would silently read as "no versions".
 # shellcheck disable=SC2153
-mapfile -t versions < <(jq -r '.[]' <<<"$VERSIONS")
+versions_raw="$(jq -r '.[]' <<<"$VERSIONS")"
+
+mapfile -t versions < <(printf '%s' "$versions_raw")
 
 # The package is shared across all versions, so we query its tags once and
 # reuse the result for each version's existence check.

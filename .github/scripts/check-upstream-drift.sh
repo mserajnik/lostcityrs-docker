@@ -89,7 +89,12 @@ migration_manifest() {
 # The versions to check are taken from the build metadata (every version that
 # gets built), not from the pinned commit map, so that a version which is built
 # but has no pin fails loudly below instead of going silently unchecked.
-mapfile -t versions < <(jq -r 'keys[]' <<<"$BUILD_METADATA")
+#
+# Collect the versions first: `mapfile` reports only its own status, so a `jq`
+# failure would silently read as "no versions".
+versions_raw="$(jq -r 'keys[]' <<<"$BUILD_METADATA")"
+
+mapfile -t versions < <(printf '%s' "$versions_raw")
 
 if ((${#versions[@]} == 0)); then
   fail "No versions found in BUILD_METADATA."
