@@ -41,13 +41,13 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Run hadolint
-        uses: hadolint/hadolint-action@v3.3.0
+        uses: hadolint/hadolint-action@v3.5.0
 
       # There is no way to make the action find this file automatically (even
       # in recursive mode it only searches for the literal `Dockerfile` name),
       # so we run it explicitly here.
       - name: Run hadolint (Dockerfile.node)
-        uses: hadolint/hadolint-action@v3.3.0
+        uses: hadolint/hadolint-action@v3.5.0
         with:
           dockerfile: Dockerfile.node
 
